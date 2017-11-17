@@ -41,3 +41,5 @@ def runFight(p1, p2, p1s, p2s):
         print(obj1['textLose'].format(obj2['textWin']))
 
 runFight(p1, p2, p1s, p2s)
+
+input("Press ENTER to continue...")
