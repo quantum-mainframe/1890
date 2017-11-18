@@ -8,11 +8,54 @@ pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in 
 #source = pyglet.media.load('animations/xkcdattack_1.mp4') #There's a chance it does support MP4, but we're gonna need FFMPEG
 #player = pyglet.media.Player()
 window = pyglet.window.Window()
+gui = glooey.Gui(window)
 step = 0
 
-@window.event
-def on_draw():
-    pass
+class MyLabel(glooey.Label):
+    custom_color = '#babdb6'
+    custom_font_size = 10
+    custom_alignment = 'center'
+
+# If we want another kind of text, for example a bigger font for section
+# titles, we just have to derive another class:
+
+class MyTitle(glooey.Label):
+    custom_color = '#eeeeec'
+    custom_font_size = 12
+    custom_alignment = 'center'
+    custom_bold = True
+
+class MyButton(glooey.Button):
+    Label = MyLabel
+    custom_alignment = 'fill bottom'
+
+    # More often you'd specify images for the different rollover states, but
+    # we're just using colors here so you won't have to download any files
+    # if you want to run this code.
+
+    class Base(glooey.Background):
+        custom_color = '#204a87'
+
+    class Over(glooey.Background):
+        custom_color = '#3465a4'
+
+    class Down(glooey.Background):
+        custom_color = '#729fcff'
+
+    # Beyond just setting class variables in our widget subclasses, we can
+    # also implement new functionality.  Here we just print a programmed
+    # response when the button is clicked.
+
+    def __init__(self, text, response):
+        super().__init__(text)
+        self.response = response
+
+    def on_click(self, widget):
+        print(self.response)
+
+class MyBox(glooey.Placeholder):
+    custom_alignment = 'center'
+    #custom_padding = 10
 
 @window.event
 def on_key_press(symbol, modifiers):
@@ -81,6 +124,15 @@ label = pyglet.text.Label('This is a truly arbitrary string',
                           font_size=12,
                           x=window.width//2, y=window.height//1,
                           anchor_x='center', anchor_y='top')
+grid = glooey.Grid()
+
+for i in range(2):
+    for j in range(4):
+        grid.add(i, j, MyBox(100,100))
+
+grid.custom_alignment = 'bottom'
+gui.add(grid)
+
 pyglet.app.run()
 
 
