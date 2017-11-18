@@ -81,6 +81,15 @@ def getObjectsPlayerAndCPU():
     else:
         obj2 = getObjectMostStylish(objs)
     return (obj1, obj2)
+    
+def getObjectsPlayerAndPlayer():
+    objs = getObjectsRandom(8)
+    print("Player 1:")
+    obj1 = askObjectsSelection(objs)
+    os.system('clear')
+    print("Player 2:")
+    obj2 = askObjectsSelection(objs)
+    return (obj1, obj2)
 
 def demoRunFight(obj1, obj2, p1s, p2s):
     obj1 = dict(obj1)
@@ -125,3 +134,22 @@ def modeEnduranceRun():
     print("oh no, you lost")
     print("you did survive {} round(s), though".format(r - 1))
     return r
+
+def mode1v1Run():
+    while True:
+        print()
+        objs = getObjectsPlayerAndPlayer()
+        os.system('clear')
+        p1s = input("Does Player 1 want to play offensively or defensively? ")
+        if p1s[0] == 'o':
+            p1s = 'offense'
+        else:
+            p1s = 'defense'
+        os.system('clear')
+        p2s = input("Does Player 2 want to play offensively or defensively? ")
+        if p2s[0] == 'o':
+            p2s = 'offense'
+        else:
+            p2s = 'defense'
+        demoRunFight(objs[0], objs[1], p1s, p2s)
+        print()
