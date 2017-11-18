@@ -2,7 +2,7 @@ import configparser, os
 from fight import fightOutcome
 
 objects = configparser.ConfigParser()
-objects.read('objects.ini')
+objects.read('assets/objects.ini')
 
 p1 = input("Enter the id of the object player 1 wants to use: ")
 p1s = input("Does player 1 want to play offensively or defensively? ")

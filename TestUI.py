@@ -3,8 +3,8 @@ from pyglet.window import key, mouse
 from fight import fightOutcome
 
 objects = configparser.ConfigParser()
-objects.read('objects.ini')
-pyglet.font.add_file('xkcd-Regular.ttf') #If we include the font in the build, change this line to: "pyglet.resource.add_font('xkcdRegular.ttf')"
+objects.read('assets/objects.ini')
+pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in the build, change this line to: "pyglet.resource.add_font('xkcdRegular.ttf')"
 #source = pyglet.media.load('animations/xkcdattack_1.mp4') #There's a chance it does support MP4, but we're gonna need FFMPEG
 #player = pyglet.media.Player()
 window = pyglet.window.Window()
