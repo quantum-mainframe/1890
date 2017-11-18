@@ -1,5 +1,5 @@
 import configparser, os, random
-from fight import fightOutcome, getObjectsPlayerAndCPU, modeEnduranceRun
+from fight import fightOutcome, getObjectsPlayerAndCPU, modeEnduranceRun, mode1v1Run
 
 objects = configparser.ConfigParser()
 objects.read('assets/objects.ini')
@@ -69,4 +69,4 @@ def demo2Run():
     objs = getObjectsPlayerAndCPU()
     runFight2(objs[0], objs[1], random.choice(['offense','defense']), random.choice(['offense','defense']))
 
-modeEnduranceRun()
+mode1v1Run()
