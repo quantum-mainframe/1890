@@ -8,8 +8,12 @@ pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in 
 #source = pyglet.media.load('animations/xkcdattack_1.mp4') #There's a chance it does support MP4, but we're gonna need FFMPEG
 #player = pyglet.media.Player()
 window = pyglet.window.Window()
-gui = glooey.Gui(window)
+batch = pyglet.graphics.Batch()
+group = pyglet.graphics.Group()
+gui = glooey.Gui(window, batch, group)
+game_loop = pyglet.app.EventLoop()
 step = 0
+
 
 class MyLabel(glooey.Label):
     custom_color = '#babdb6'
@@ -58,6 +62,13 @@ class MyBox(glooey.Placeholder):
     #custom_padding = 10
 
 @window.event
+def on_draw():
+    gameLoopIdle()
+    window.clear()
+    gui.on_draw()
+    label.draw()
+
+@window.event
 def on_key_press(symbol, modifiers):
     global step
     if symbol == key.A:
@@ -72,9 +83,10 @@ def on_key_press(symbol, modifiers):
 
 @window.event
 def on_mouse_press(x, y, button, modifiers):
+    global step
     if button == mouse.LEFT:
         print('The left mouse button was pressed.')
-    gameLoop()
+    step += 1
 
 def runFight(p1, p2, p1s, p2s):
     o = objects[p1]
@@ -98,8 +110,7 @@ def runFight(p1, p2, p1s, p2s):
     elif winner == obj2:
         print(obj1['textLose'].format(obj2['textWin']))
 
-def gameLoop():
-    global step
+def gameLoopIdle():
     if step == 0:
         label.text = 'Enter the id of the object player 1 wants to use: '
     elif step == 1:
@@ -114,9 +125,7 @@ def gameLoop():
         #player.play()
     elif step == 10:
         label.text = 'Please...'
-    step += 1
-    window.clear()
-    label.draw()
+    
 
 
 label = pyglet.text.Label('This is a truly arbitrary string',
@@ -124,8 +133,9 @@ label = pyglet.text.Label('This is a truly arbitrary string',
                           font_size=12,
                           x=window.width//2, y=window.height//1,
                           anchor_x='center', anchor_y='top')
-grid = glooey.Grid()
 
+
+grid = glooey.Grid()
 for i in range(2):
     for j in range(4):
         grid.add(i, j, MyBox(100,100))
@@ -133,9 +143,20 @@ for i in range(2):
 grid.custom_alignment = 'bottom'
 gui.add(grid)
 
+label.draw()
+
 pyglet.app.run()
+'''
+while True:
+    pyglet.clock.tick()
 
+    for window in pyglet.app.windows:
+        window.switch_to()
+        window.dispatch_events()
+        window.dispatch_event('on_draw')
+        window.flip()
 
+'''
 '''
 p1 = input("Enter the id of the object player 1 wants to use: ")
 p1s = input("Does player 1 want to play offensively or defensively? ")
