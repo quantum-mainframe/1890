@@ -1,6 +1,14 @@
-import configparser, random, os
+import configparser, random, os, platform
 
 OBJECTSFILE = 'assets/objects.ini'
+
+OS = platform.system()
+
+def clear():
+    if (OS == 'Windows'):
+        os.system('cls')
+    else:
+        os.system('clear')
 
 def fightOutcome(obj1, obj2):
     if obj1['state'] == 'offense' and obj2['state'] == 'defense':
@@ -86,7 +94,7 @@ def getObjectsPlayerAndPlayer():
     objs = getObjectsRandom(8)
     print("Player 1:")
     obj1 = askObjectsSelection(objs)
-    os.system('clear')
+    clear()
     print("Player 2:")
     obj2 = askObjectsSelection(objs)
     return (obj1, obj2)
@@ -139,13 +147,13 @@ def mode1v1Run():
     while True:
         print()
         objs = getObjectsPlayerAndPlayer()
-        os.system('clear')
+        clear()
         p1s = input("Does Player 1 want to play offensively or defensively? ")
         if p1s[0] == 'o':
             p1s = 'offense'
         else:
             p1s = 'defense'
-        os.system('clear')
+        clear()
         p2s = input("Does Player 2 want to play offensively or defensively? ")
         if p2s[0] == 'o':
             p2s = 'offense'
