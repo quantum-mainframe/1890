@@ -81,3 +81,47 @@ def getObjectsPlayerAndCPU():
     else:
         obj2 = getObjectMostStylish(objs)
     return (obj1, obj2)
+
+def demoRunFight(obj1, obj2, p1s, p2s):
+    obj1 = dict(obj1)
+    obj2 = dict(obj2)
+    obj1['state'] = p1s
+    obj2['state'] = p2s
+    
+    if obj1['state'] == 'offense' and obj2['state'] == 'defense':
+        print("The {0} attacks the {1}!".format(obj1['name'], obj2['name']))
+    elif obj1['state'] == 'defense' and obj2['state'] == 'offense':
+        print("The {0} is attacked by the {1}!".format(obj1['name'], obj2['name']))
+    elif obj1['state'] == 'offense' and obj2['state'] == 'offense':
+        print("The {0} and {1} fight!".format(obj1['name'], obj2['name']))
+    elif obj1['state'] == 'defense' and obj2['state'] == 'defense':
+        print("The {0} and {1} defend the hell out of each other!".format(obj1['name'], obj2['name']))
+    winner = fightOutcome(obj1, obj2)
+    print("The {} wins!".format(winner['name']))
+    print("And the moral of that story is:")
+    if winner == obj1:
+        print(obj2['textlose'].format(obj1['textwin']))
+        return True
+    elif winner == obj2:
+        print(obj1['textlose'].format(obj2['textwin']))
+        return False
+
+def modeEnduranceRun():
+    loss = False
+    r = 1
+    while not loss:
+        print("\n== ROUND {} ==\n".format(r))
+        objs = getObjectsPlayerAndCPU()
+        p1s = input("Do you want to play offensively or defensively? ")
+        if p1s[0] == 'o':
+            p1s = 'offense'
+        else:
+            p1s = 'defense'
+        p2s = random.choice(['offense', 'defense'])
+        winner = demoRunFight(objs[0], objs[1], p1s, p2s)
+        if not winner:
+            loss = True
+        r += 1
+    print("oh no, you lost")
+    print("you did survive {} round(s), though".format(r - 1))
+    return r
