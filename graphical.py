@@ -5,8 +5,12 @@ from fight import fightOutcome
 objects = configparser.ConfigParser()
 objects.read('assets/objects.ini')
 pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in the build, change this line to: "pyglet.resource.add_font('xkcdRegular.ttf')"
-pyglet.options['audio'] = ('pulse', 'openal', 'directsound', 'silent')
-music = pyglet.media.load('assets/music/dbgf01.ogg')
+try:
+    pyglet.options['audio'] = ('pulse', 'openal', 'directsound', 'silent')
+    music = pyglet.media.load('assets/music/dbgf01.ogg')
+    music.play()
+except:
+    print("Everything is lava: media isn't working. You probably need to install AVbin.")
 #source = pyglet.media.load('animations/xkcdattack_1.mp4') #There's a chance it does support MP4, but we're gonna need FFMPEG
 #player = pyglet.media.Player()
 window = pyglet.window.Window(1280, 960, "Bull in a Gun Fight", True)
@@ -26,7 +30,6 @@ pressedLast = ''
 events = [0] * 100
 inLoop = False
 collect_global_mouse_input = False
-music.play()
 
 class MyLabel(glooey.Label):
     custom_font_name = 'xkcd'
