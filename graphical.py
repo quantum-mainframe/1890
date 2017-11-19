@@ -5,12 +5,12 @@ from fight import fightOutcome
 objects = configparser.ConfigParser()
 objects.read('assets/objects.ini')
 pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in the build, change this line to: "pyglet.resource.add_font('xkcdRegular.ttf')"
-try:
-    pyglet.options['audio'] = ('pulse', 'openal', 'directsound', 'silent')
-    music = pyglet.media.load('assets/music/dbgf01.ogg')
-    music.play()
-except:
-    print("Everything is lava: media isn't working. You probably need to install AVbin.")
+#try:
+#    pyglet.options['audio'] = ('pulse', 'openal', 'directsound', 'silent')
+#    music = pyglet.media.load('assets/music/dbgf01.ogg')
+#    music.play()
+#except Exception as e:
+#    print("Everything is lava: media isn't working. You probably need to install AVbin.\n{}").format(e)
 #source = pyglet.media.load('animations/xkcdattack_1.mp4') #There's a chance it does support MP4, but we're gonna need FFMPEG
 #player = pyglet.media.Player()
 window = pyglet.window.Window(1280, 960, "Bull in a Gun Fight", True)
@@ -26,10 +26,13 @@ batch = pyglet.graphics.Batch()
 group = pyglet.graphics.Group()
 gui = glooey.Gui(window, batch, group)
 step = 0
+r = 0
 pressedLast = ''
 events = [0] * 100
 inLoop = False
 collect_global_mouse_input = False
+modeEndurance = True
+mode1v1 = False
 
 class MyLabel(glooey.Label):
     custom_font_name = 'xkcd'
@@ -87,7 +90,10 @@ class WeaponGrid(glooey.Grid):
 
 @window.event
 def on_draw():
-    gameLoopIdle()
+    if modeEndurance:
+        modeEnduranceRound()
+    elif mode1v1:
+        mode1v1Round()
     window.clear()
     gui.on_draw()
     label.draw()
@@ -114,7 +120,7 @@ def on_mouse_press(x, y, button, modifiers):
     gui.dispatch_event('on_mouse_press', x, y, button,modifiers)
     global step
     if button == mouse.LEFT:
-        #print('The left mouse button was pressed.')
+        #print("The left mouse button was pressed.")
         if (collect_global_mouse_input):
             step += 1
 
@@ -126,6 +132,14 @@ def getObjectsRandomId(number):
             obj = random.choice(tuple(objects))
         objectsChosen.append(obj)
     return objectsChosen
+
+def getObjectMostStylish(objs):
+    mostStyle = 0
+    for obj in objs:
+        if int(objects[obj]['style']) > mostStyle:
+            mostStyle = int(objects[obj]['style'])
+            mostStylish = obj
+    return mostStylish
 
 def runFight(p1, p2, p1s, p2s):
     o = objects[p1]
@@ -148,8 +162,10 @@ def runFight(p1, p2, p1s, p2s):
     out.append("And the moral of that story is:")
     if winner == obj1:
         out.append(obj2['textLose'].format(obj1['textWin']))
+        out.append(p1)
     elif winner == obj2:
         out.append(obj1['textLose'].format(obj2['textWin']))
+        out.append(p2)
     return out
 
 def drawWeaponGrid(rows, columns, objs):
@@ -169,7 +185,7 @@ def drawADGrid(rows, columns):
     grid.add(1, 1, WeaponButton("Defensively", 'defense'))
     gui.add(grid)
 
-def gameLoopIdle():
+def mode1v1Round():
     if (events[step]):
         return
     events[step] = True
@@ -227,8 +243,81 @@ def gameLoopIdle():
         label.text = outputFight[2]
         label2.text = outputFight[3]
     elif step == 10:
-        label.text = "The game's over. Close your window."
-        label2.text = "Please go home. The game's done."
+        label.text = "Click anywhere to play again."
+        label2.text = ""
+    elif step == 11:
+        step = 0
+        window.clear()
+        events = [0] * 100
+
+def modeEnduranceRound():
+    global step
+    global r
+    global collect_global_mouse_input
+    global events
+    if (events[step]):
+        return
+    events[step] = True
+    if step == 0:
+        collect_global_mouse_input = True
+        label.text = "Round {}".format(r + 1)
+        label2.text = "Click anywhere to begin."
+    elif step == 1:
+        global objs
+        collect_global_mouse_input = False
+        label.text = "What do you want to bring to the fight?"
+        label2.text = ""
+        objs = getObjectsRandomId(8)
+        drawWeaponGrid(2, 4, objs)
+    elif step == 2:
+        global obj1
+        obj1 = pressedLast
+        label.text = "How would you like to use your {}?".format(objects[obj1]['name'])
+        drawADGrid(1, 2)
+    elif step == 3:
+        global state1
+        global state2
+        global outputFight
+        state1 = pressedLast
+        if random.randint(1,10) == 1:
+            obj2 = random.choice(objs)
+        else:
+            obj2 = getObjectMostStylish(objs)
+        state2 = random.choice(['offense', 'defense'])
+        gui.clear()
+        collect_global_mouse_input = True
+        label.text = "The CPU brought {}.".format(objects[obj2]['name'])
+        label2.text = "Click to begin the fight."
+        outputFight = runFight(obj1, obj2, state1, state2)
+    elif step == 4:
+        label.text = outputFight[0]
+        label2.text = ""
+    elif step == 5:
+        label2.text = outputFight[1]
+    elif step == 6:
+        label.text = outputFight[2]
+        label2.text = outputFight[3]
+    elif step == 7:
+        if outputFight[4] == obj1:
+            modeEnduranceRun(False)
+        else:
+            modeEnduranceRun(True)
+        events = [0] * 100
+
+def modeEnduranceRun(loss = False):
+    global r
+    global modeEndurance
+    global step
+    if loss:
+        label.text = "You lose!"
+        label2.text = "You survived {} rounds.".format(r + 1)
+        modeEndurance = False
+    else:
+        r += 1
+        modeEndurance = True
+        step = 0
+        #window.clear()
+        modeEnduranceRound()
 
 label = pyglet.text.Label("This is a truly arbitrary string",
                           font_name='xkcd',
