@@ -14,7 +14,7 @@ pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in 
 #source = pyglet.media.load('animations/xkcdattack_1.mp4') #There's a chance it does support MP4, but we're gonna need FFMPEG
 #player = pyglet.media.Player()
 window = pyglet.window.Window(1280, 960, "Bull in a Gun Fight", True)
-window.set_minimum_size(1280, 960)
+window.set_minimum_size(960, 720)
 icon16 = pyglet.image.load('assets/images/icon16.png')
 icon32 = pyglet.image.load('assets/images/icon32.png')
 icon48 = pyglet.image.load('assets/images/icon48.png')
