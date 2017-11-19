@@ -1,4 +1,4 @@
-import pyglet, configparser, os, glooey, random
+import pyglet, configparser, os, glooey, random, sys
 from pyglet.window import key, mouse
 from fight import fightOutcome
 
@@ -31,8 +31,19 @@ pressedLast = ''
 events = [0] * 100
 inLoop = False
 collect_global_mouse_input = False
-modeEndurance = True
-mode1v1 = False
+try:
+    if sys.argv[1] == '1v1':
+        modeEndurance = False
+        mode1v1 = True
+    elif sys.argv[1] == 'endurance':
+        modeEndurance = True
+        mode1v1 = False
+    else:
+        modeEndurance = True
+        mode1v1 = False
+except:
+    modeEndurance = True
+    mode1v1 = False
 
 class MyLabel(glooey.Label):
     custom_font_name = 'xkcd'
@@ -186,10 +197,12 @@ def drawADGrid(rows, columns):
     gui.add(grid)
 
 def mode1v1Round():
+    global events
+    global step
+    global collect_global_mouse_input
     if (events[step]):
         return
     events[step] = True
-    global collect_global_mouse_input
     if step == 0:
         collect_global_mouse_input = True
         label.text = "Player 2, look away."
