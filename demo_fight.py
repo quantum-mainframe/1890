@@ -68,5 +68,3 @@ def demoRun():
 def demo2Run():
     objs = getObjectsPlayerAndCPU()
     runFight2(objs[0], objs[1], random.choice(['offense','defense']), random.choice(['offense','defense']))
-
-mode1v1Run()

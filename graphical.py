@@ -5,6 +5,8 @@ from fight import fightOutcome
 objects = configparser.ConfigParser()
 objects.read('assets/objects.ini')
 pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in the build, change this line to: "pyglet.resource.add_font('xkcdRegular.ttf')"
+pyglet.options['audio'] = ('pulse', 'openal', 'directsound', 'silent')
+music = pyglet.media.load('assets/music/dbgf01.ogg')
 #source = pyglet.media.load('animations/xkcdattack_1.mp4') #There's a chance it does support MP4, but we're gonna need FFMPEG
 #player = pyglet.media.Player()
 window = pyglet.window.Window(1280, 960, "Bull in a Gun Fight", True)
@@ -24,7 +26,7 @@ pressedLast = ''
 events = [0] * 100
 inLoop = False
 collect_global_mouse_input = False
-
+music.play()
 
 class MyLabel(glooey.Label):
     custom_font_name = 'xkcd'
@@ -136,7 +138,7 @@ def runFight(p1, p2, p1s, p2s):
         out.append("The {0} is attacked by the {1}!".format(obj1['name'], obj2['name']))
     elif obj1['state'] == 'offense' and obj2['state'] == 'offense':
         out.append("The {0} and {1} fight!".format(obj1['name'], obj2['name']))
-    elif obj1['state'] == 'defence' and obj2['state'] == 'defence':
+    elif obj1['state'] == 'defense' and obj2['state'] == 'defense':
         out.append("The {0} and {1} defend the hell out of each other!".format(obj1['name'], obj2['name']))
     winner = fightOutcome(obj1, obj2)
     out.append("The {} wins!".format(winner['name']))
@@ -220,11 +222,9 @@ def gameLoopIdle():
         label2.text = outputFight[1]
     elif step == 9:
         label.text = outputFight[2]
-        label2.font_size = 16
         label2.text = outputFight[3]
     elif step == 10:
         label.text = "The game's over. Close your window."
-        label2.font_size = 32
         label2.text = "Please go home. The game's done."
 
 label = pyglet.text.Label("This is a truly arbitrary string",
