@@ -152,7 +152,7 @@ def drawWeaponGrid(rows, columns, objs):
     grid = WeaponGrid()
     for i in range(rows):
         for j in range(columns):
-            grid.add(i, j, WeaponButton(objects[objs[x]]['name'], objects[objs[x]]))
+            grid.add(i, j, WeaponButton(objects[objs[x]]['name'], objs[x]))
             x += 1
     gui.add(grid)
 
@@ -180,10 +180,12 @@ def gameLoopIdle():
         objs = getObjectsRandomId(8)
         drawWeaponGrid(2, 4, objs)
     elif step == 2:
+        global obj1
         obj1 = pressedLast
-        label.text = "Player 1, how would you like to use your {}?".format(obj1['name'])
+        label.text = "Player 1, how would you like to use your {}?".format(objects[obj1]['name'])
         drawADGrid(1, 2)
     elif step == 3:
+        global state1
         state1 = pressedLast
         gui.clear()
         collect_global_mouse_input = True
@@ -195,18 +197,32 @@ def gameLoopIdle():
         label2.text = ""
         drawWeaponGrid(2, 4, objs)
     elif step == 5:
+        global obj2
         obj2 = pressedLast
-        label.text = "Player 2, how would you like to use your {}?".format(pressedLast['name'])
+        label.text = "Player 2, how would you like to use your {}?".format(objects[obj2]['name'])
         drawADGrid(1, 2)
     elif step == 6:
+        global state2
+        global outputFight
         state2 = pressedLast
         gui.clear()
         collect_global_mouse_input = True
-        label.text = "OK. Stop clicking now."
+        label.text = "Both players can look."
+        label2.text = "The fight is about to begin."
+        outputFight = runFight(obj1, obj2, state1, state2)
         #player.queue(source)
         #player.play()
+    elif step == 7:
+        label.text = outputFight[0]
+        label2.text = ""
+    elif step == 8:
+        label2.text = outputFight[1]
+    elif step == 9:
+        label.text = outputFight[2]
+        label2.text = outputFight[3]
     elif step == 10:
-        label.text = "Please..."
+        label.text = "The game's over. Close your window."
+        label2.text = "Please go home. The game's done."
 
 label = pyglet.text.Label("This is a truly arbitrary string",
                           font_name='xkcd',
