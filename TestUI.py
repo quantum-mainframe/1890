@@ -76,17 +76,18 @@ def on_draw():
     window.clear()
     gui.on_draw()
     label.draw()
+    label2.draw()
 
 @window.event
 def on_key_press(symbol, modifiers):
     gui.dispatch_event('on_key_press', symbol, modifiers)
     global step
     if symbol == key.A:
-        print('The "A" key was pressed.')
+        print("The A key was pressed.")
     elif symbol == key.LEFT:
-        print('The left arrow key was pressed.')
+        print("The left arrow key was pressed.")
     elif symbol == key.ENTER:
-        print('The enter key was pressed.')
+        print("The enter key was pressed.")
     elif symbol == key.TAB:
         step = 0
         window.clear()
@@ -137,8 +138,8 @@ def drawWeaponGrid(rows, columns):
 def drawADGrid(rows, columns):
     gui.clear()
     grid = WeaponGrid()
-    grid.add(1, 0, WeaponButton("Offense", "Offense"))
-    grid.add(1, 1, WeaponButton("Defense", "Defense"))
+    grid.add(1, 0, WeaponButton("Offensively", 'offense'))
+    grid.add(1, 1, WeaponButton("Defensively", 'defense'))
     gui.add(grid)
 
 def gameLoopIdle():
@@ -147,30 +148,48 @@ def gameLoopIdle():
     events[step] = True
     global collect_global_mouse_input
     if step == 0:
-        label.text = 'Enter the id of the object player 1 wants to use: '
-        drawWeaponGrid(2, 4)
+        collect_global_mouse_input = True
+        label.text = "Player 2, look away."
+        label2.text = "Player 1, click anywhere to continue."
     elif step == 1:
-        label.text = 'Does player 1 want to play offensively or defensively? '
-        drawADGrid(1, 2)
-    elif step == 2:
-        label.text = 'Enter the id of the object player 2 wants to use: '
+        collect_global_mouse_input = False
+        label.text = "Player 1, what do you want to bring?"
+        label2.text = ""
         drawWeaponGrid(2, 4)
-    elif step == 3:
-        label.text = 'Does player 2 want to play offensively or defensively? '
+    elif step == 2:
+        label.text = "Player 1, how would you like to use your object?"
         drawADGrid(1, 2)
-    elif step == 4:
+    elif step == 3:
         gui.clear()
         collect_global_mouse_input = True
-        label.text = 'OK. Stop clicking now.'
+        label.text = "Player 1, look away."
+        label2.text = "Player 2, click anywhere to continue."
+    elif step == 4:
+        collect_global_mouse_input = False
+        label.text = "Player 2, what do you want to bring?"
+        label2.text = ""
+        drawWeaponGrid(2, 4)
+    elif step == 5:
+        label.text = "Player 2, how would you like to use your object?"
+        drawADGrid(1, 2)
+    elif step == 6:
+        gui.clear()
+        collect_global_mouse_input = True
+        label.text = "OK. Stop clicking now."
         #player.queue(source)
         #player.play()
     elif step == 10:
-        label.text = 'Please...'
+        label.text = "Please..."
 
-label = pyglet.text.Label('This is a truly arbitrary string',
+label = pyglet.text.Label("This is a truly arbitrary string",
                           font_name='xkcd',
                           font_size=16,
-                          x=window.width//2, y=window.height//1,
+                          x=window.width/2, y=window.height/2 + 32,
+                          anchor_x='center', anchor_y='top')
+label2 = pyglet.text.Label("This is also a truly arbitrary string",
+                          font_name='xkcd',
+                          font_size=16,
+                          x=window.width/2, y=window.height/2,
                           anchor_x='center', anchor_y='top')
 
 pyglet.app.run()
