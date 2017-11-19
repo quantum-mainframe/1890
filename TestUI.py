@@ -11,13 +11,16 @@ window = pyglet.window.Window()
 batch = pyglet.graphics.Batch()
 group = pyglet.graphics.Group()
 gui = glooey.Gui(window, batch, group)
-game_loop = pyglet.app.EventLoop()
 step = 0
+events = [0] * 100
+inLoop = False
+collect_global_mouse_input = False
 
 
 class MyLabel(glooey.Label):
+    custom_font_name = 'xkcd'
     custom_color = '#babdb6'
-    custom_font_size = 10
+    custom_font_size = 20
     custom_alignment = 'center'
 
 # If we want another kind of text, for example a bigger font for section
@@ -29,9 +32,9 @@ class MyTitle(glooey.Label):
     custom_alignment = 'center'
     custom_bold = True
 
-class MyButton(glooey.Button):
+class WeaponButton(glooey.Button):
     Label = MyLabel
-    custom_alignment = 'fill bottom'
+    custom_alignment = 'fill'
 
     # More often you'd specify images for the different rollover states, but
     # we're just using colors here so you won't have to download any files
@@ -55,11 +58,17 @@ class MyButton(glooey.Button):
         self.response = response
 
     def on_click(self, widget):
+        global step
         print(self.response)
+        step += 1
 
-class MyBox(glooey.Placeholder):
+class TempBox(glooey.Placeholder):
     custom_alignment = 'center'
-    #custom_padding = 10
+    custom_padding = 10
+
+class WeaponGrid(glooey.Grid):
+    custom_alignment = 'fill bottom'
+    custom_padding = 10
 
 @window.event
 def on_draw():
@@ -70,6 +79,7 @@ def on_draw():
 
 @window.event
 def on_key_press(symbol, modifiers):
+    gui.dispatch_event('on_key_press', symbol, modifiers)
     global step
     if symbol == key.A:
         print('The "A" key was pressed.')
@@ -80,13 +90,17 @@ def on_key_press(symbol, modifiers):
     elif symbol == key.TAB:
         step = 0
         window.clear()
+    elif symbol == key.SPACE:
+        step += 1
 
 @window.event
 def on_mouse_press(x, y, button, modifiers):
+    gui.dispatch_event('on_mouse_press', x, y, button,modifiers)
     global step
     if button == mouse.LEFT:
         print('The left mouse button was pressed.')
-    step += 1
+        if (collect_global_mouse_input):
+            step += 1
 
 def runFight(p1, p2, p1s, p2s):
     o = objects[p1]
@@ -110,40 +124,54 @@ def runFight(p1, p2, p1s, p2s):
     elif winner == obj2:
         print(obj1['textLose'].format(obj2['textWin']))
 
+def drawWeaponGrid(rows, columns):
+    gui.clear()
+    x = 0
+    grid = WeaponGrid()
+    for i in range(rows):
+        for j in range(columns):
+            x += 1
+            grid.add(i, j, WeaponButton("REEE", x))
+    gui.add(grid)
+
+def drawADGrid(rows, columns):
+    gui.clear()
+    grid = WeaponGrid()
+    grid.add(1, 0, WeaponButton("Offense", "Offense"))
+    grid.add(1, 1, WeaponButton("Defense", "Defense"))
+    gui.add(grid)
+
 def gameLoopIdle():
+    if (events[step]):
+        return
+    events[step] = True
+    global collect_global_mouse_input
     if step == 0:
         label.text = 'Enter the id of the object player 1 wants to use: '
+        drawWeaponGrid(2, 4)
     elif step == 1:
         label.text = 'Does player 1 want to play offensively or defensively? '
+        drawADGrid(1, 2)
     elif step == 2:
         label.text = 'Enter the id of the object player 2 wants to use: '
+        drawWeaponGrid(2, 4)
     elif step == 3:
         label.text = 'Does player 2 want to play offensively or defensively? '
+        drawADGrid(1, 2)
     elif step == 4:
+        gui.clear()
+        collect_global_mouse_input = True
         label.text = 'OK. Stop clicking now.'
         #player.queue(source)
         #player.play()
     elif step == 10:
         label.text = 'Please...'
-    
-
 
 label = pyglet.text.Label('This is a truly arbitrary string',
                           font_name='xkcd',
-                          font_size=12,
+                          font_size=16,
                           x=window.width//2, y=window.height//1,
                           anchor_x='center', anchor_y='top')
-
-
-grid = glooey.Grid()
-for i in range(2):
-    for j in range(4):
-        grid.add(i, j, MyBox(100,100))
-
-grid.custom_alignment = 'bottom'
-gui.add(grid)
-
-label.draw()
 
 pyglet.app.run()
 '''
