@@ -7,7 +7,14 @@ objects.read('assets/objects.ini')
 pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in the build, change this line to: "pyglet.resource.add_font('xkcdRegular.ttf')"
 #source = pyglet.media.load('animations/xkcdattack_1.mp4') #There's a chance it does support MP4, but we're gonna need FFMPEG
 #player = pyglet.media.Player()
-window = pyglet.window.Window()
+window = pyglet.window.Window(1280, 960, "Bull in a Gun Fight")
+icon16 = pyglet.image.load('assets/images/icon16.png')
+icon32 = pyglet.image.load('assets/images/icon32.png')
+icon48 = pyglet.image.load('assets/images/icon48.png')
+icon64 = pyglet.image.load('assets/images/icon64.png')
+icon72 = pyglet.image.load('assets/images/icon72.png')
+icon128 = pyglet.image.load('assets/images/icon128.png')
+window.set_icon(icon16, icon32, icon48, icon64, icon72, icon128)
 batch = pyglet.graphics.Batch()
 group = pyglet.graphics.Group()
 gui = glooey.Gui(window, batch, group)
@@ -80,28 +87,28 @@ def on_draw():
     label.draw()
     label2.draw()
 
-@window.event
-def on_key_press(symbol, modifiers):
-    gui.dispatch_event('on_key_press', symbol, modifiers)
-    global step
-    if symbol == key.A:
-        print("The A key was pressed.")
-    elif symbol == key.LEFT:
-        print("The left arrow key was pressed.")
-    elif symbol == key.ENTER:
-        print("The enter key was pressed.")
-    elif symbol == key.TAB:
-        step = 0
-        window.clear()
-    elif symbol == key.SPACE:
-        step += 1
+#@window.event #probably better to sacrifice keyboard input in favour of it not crashing when anything is pressed?
+#def on_key_press(symbol, modifiers):
+#    gui.dispatch_event('on_key_press', symbol, modifiers)
+#    global step
+#    #if symbol == key.A:
+#    #    print("The A key was pressed.")
+#    #elif symbol == key.LEFT:
+#    #    print("The left arrow key was pressed.")
+#    #elif symbol == key.ENTER:
+#    #    print("The enter key was pressed.")
+#    if symbol == key.TAB:
+#        step = 0
+#        window.clear()
+#    elif symbol == key.SPACE:
+#        step += 1
 
 @window.event
 def on_mouse_press(x, y, button, modifiers):
     gui.dispatch_event('on_mouse_press', x, y, button,modifiers)
     global step
     if button == mouse.LEFT:
-        print('The left mouse button was pressed.')
+        #print('The left mouse button was pressed.')
         if (collect_global_mouse_input):
             step += 1
 
@@ -161,21 +168,23 @@ def gameLoopIdle():
         return
     events[step] = True
     global collect_global_mouse_input
-    objs = []
     if step == 0:
         collect_global_mouse_input = True
         label.text = "Player 2, look away."
         label2.text = "Player 1, click anywhere to continue."
     elif step == 1:
+        global objs
         collect_global_mouse_input = False
         label.text = "Player 1, what do you want to bring?"
         label2.text = ""
         objs = getObjectsRandomId(8)
         drawWeaponGrid(2, 4, objs)
     elif step == 2:
-        label.text = "Player 1, how would you like to use your object?"
+        obj1 = pressedLast
+        label.text = "Player 1, how would you like to use your {}?".format(obj1['name'])
         drawADGrid(1, 2)
     elif step == 3:
+        state1 = pressedLast
         gui.clear()
         collect_global_mouse_input = True
         label.text = "Player 1, look away."
@@ -186,9 +195,11 @@ def gameLoopIdle():
         label2.text = ""
         drawWeaponGrid(2, 4, objs)
     elif step == 5:
-        label.text = "Player 2, how would you like to use your object?"
+        obj2 = pressedLast
+        label.text = "Player 2, how would you like to use your {}?".format(pressedLast['name'])
         drawADGrid(1, 2)
     elif step == 6:
+        state2 = pressedLast
         gui.clear()
         collect_global_mouse_input = True
         label.text = "OK. Stop clicking now."
@@ -199,12 +210,12 @@ def gameLoopIdle():
 
 label = pyglet.text.Label("This is a truly arbitrary string",
                           font_name='xkcd',
-                          font_size=16,
-                          x=window.width/2, y=window.height/2 + 32,
+                          font_size=32,
+                          x=window.width/2, y=window.height/2 + 64,
                           anchor_x='center', anchor_y='top')
 label2 = pyglet.text.Label("This is also a truly arbitrary string",
                           font_name='xkcd',
-                          font_size=16,
+                          font_size=32,
                           x=window.width/2, y=window.height/2,
                           anchor_x='center', anchor_y='top')
 
