@@ -1,4 +1,4 @@
-import pyglet, configparser, os, glooey
+import pyglet, configparser, os, glooey, random
 from pyglet.window import key, mouse
 from fight import fightOutcome
 
@@ -12,6 +12,7 @@ batch = pyglet.graphics.Batch()
 group = pyglet.graphics.Group()
 gui = glooey.Gui(window, batch, group)
 step = 0
+pressedLast = ''
 events = [0] * 100
 inLoop = False
 collect_global_mouse_input = False
@@ -59,7 +60,8 @@ class WeaponButton(glooey.Button):
 
     def on_click(self, widget):
         global step
-        print(self.response)
+        global pressedLast
+        pressedLast = self.response
         step += 1
 
 class TempBox(glooey.Placeholder):
@@ -103,36 +105,48 @@ def on_mouse_press(x, y, button, modifiers):
         if (collect_global_mouse_input):
             step += 1
 
+def getObjectsRandomId(number):
+    objectsChosen = []
+    for i in range(number):
+        obj = random.choice(tuple(objects))
+        while obj in objectsChosen:
+            obj = random.choice(tuple(objects))
+        objectsChosen.append(obj)
+    return objectsChosen
+
 def runFight(p1, p2, p1s, p2s):
     o = objects[p1]
     obj1 = {'name':o['Name'], 'atk':int(o['Atk']), 'def':int(o['Def']), 'style':int(o['Style']), 'textLose':o['TextLose'], 'textWin':o['TextWin'], 'state':p1s}
     o = objects[p2]
     obj2 = {'name':o['Name'], 'atk':int(o['Atk']), 'def':int(o['Def']), 'style':int(o['Style']), 'textLose':o['TextLose'], 'textWin':o['TextWin'], 'state':p2s}
     
+    out = []
+    
     if obj1['state'] == 'offense' and obj2['state'] == 'defense':
-        print("The {0} attacks the {1}!".format(obj1['name'], obj2['name']))
+        out.append("The {0} attacks the {1}!".format(obj1['name'], obj2['name']))
     elif obj1['state'] == 'defense' and obj2['state'] == 'offense':
-        print("The {0} is attacked by the {1}!".format(obj1['name'], obj2['name']))
+        out.append("The {0} is attacked by the {1}!".format(obj1['name'], obj2['name']))
     elif obj1['state'] == 'offense' and obj2['state'] == 'offense':
-        print("The {0} and {1} fight!".format(obj1['name'], obj2['name']))
+        out.append("The {0} and {1} fight!".format(obj1['name'], obj2['name']))
     elif obj1['state'] == 'defence' and obj2['state'] == 'defence':
-        print("The {0} and {1} defend the hell out of each other!".format(obj1['name'], obj2['name']))
+        out.append("The {0} and {1} defend the hell out of each other!".format(obj1['name'], obj2['name']))
     winner = fightOutcome(obj1, obj2)
-    print("The {} wins!".format(winner['name']))
-    print("And the moral of that story is:")
+    out.append("The {} wins!".format(winner['name']))
+    out.append("And the moral of that story is:")
     if winner == obj1:
-        print(obj2['textLose'].format(obj1['textWin']))
+        out.append(obj2['textLose'].format(obj1['textWin']))
     elif winner == obj2:
-        print(obj1['textLose'].format(obj2['textWin']))
+        out.append(obj1['textLose'].format(obj2['textWin']))
+    return out
 
-def drawWeaponGrid(rows, columns):
+def drawWeaponGrid(rows, columns, objs):
     gui.clear()
     x = 0
     grid = WeaponGrid()
     for i in range(rows):
         for j in range(columns):
+            grid.add(i, j, WeaponButton(objects[objs[x]]['name'], objects[objs[x]]))
             x += 1
-            grid.add(i, j, WeaponButton("REEE", x))
     gui.add(grid)
 
 def drawADGrid(rows, columns):
@@ -147,6 +161,7 @@ def gameLoopIdle():
         return
     events[step] = True
     global collect_global_mouse_input
+    objs = []
     if step == 0:
         collect_global_mouse_input = True
         label.text = "Player 2, look away."
@@ -155,7 +170,8 @@ def gameLoopIdle():
         collect_global_mouse_input = False
         label.text = "Player 1, what do you want to bring?"
         label2.text = ""
-        drawWeaponGrid(2, 4)
+        objs = getObjectsRandomId(8)
+        drawWeaponGrid(2, 4, objs)
     elif step == 2:
         label.text = "Player 1, how would you like to use your object?"
         drawADGrid(1, 2)
@@ -168,7 +184,7 @@ def gameLoopIdle():
         collect_global_mouse_input = False
         label.text = "Player 2, what do you want to bring?"
         label2.text = ""
-        drawWeaponGrid(2, 4)
+        drawWeaponGrid(2, 4, objs)
     elif step == 5:
         label.text = "Player 2, how would you like to use your object?"
         drawADGrid(1, 2)
