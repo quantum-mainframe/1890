@@ -7,7 +7,8 @@ objects.read('assets/objects.ini')
 pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in the build, change this line to: "pyglet.resource.add_font('xkcdRegular.ttf')"
 #source = pyglet.media.load('animations/xkcdattack_1.mp4') #There's a chance it does support MP4, but we're gonna need FFMPEG
 #player = pyglet.media.Player()
-window = pyglet.window.Window(1280, 960, "Bull in a Gun Fight")
+window = pyglet.window.Window(1280, 960, "Bull in a Gun Fight", True)
+window.set_minimum_size(1280, 960)
 icon16 = pyglet.image.load('assets/images/icon16.png')
 icon32 = pyglet.image.load('assets/images/icon32.png')
 icon48 = pyglet.image.load('assets/images/icon48.png')
@@ -219,9 +220,11 @@ def gameLoopIdle():
         label2.text = outputFight[1]
     elif step == 9:
         label.text = outputFight[2]
+        label2.font_size = 16
         label2.text = outputFight[3]
     elif step == 10:
         label.text = "The game's over. Close your window."
+        label2.font_size = 32
         label2.text = "Please go home. The game's done."
 
 label = pyglet.text.Label("This is a truly arbitrary string",
