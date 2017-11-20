@@ -54,12 +54,12 @@ except:
 try:
     pyglet.options['audio'] = ('pulse', 'openal', 'directsound', 'silent')
     player = pyglet.media.Player()
-    if modeEndurance:
+    if random.randint(1,2) == 1:
         music = pyglet.media.load('assets/music/dbgf01.wav', streaming=False)
-    elif mode1v1:
-        music = pyglet.media.load('assets/music/dbgf02.wav', streaming=False)
     else:
-        print('There should be no possible way that you\'ve gotten here.')
+        music = pyglet.media.load('assets/music/dbgf02.wav', streaming=False)
+    #else:
+    #    print('There should be no possible way that you\'ve gotten here.')
     
     player.queue(music)
     player.play()
@@ -327,9 +327,9 @@ def drawADGrid(rows, columns):
 
 def getFightImage(imagePath):
     if imagePath == 'None':
-        weaponImage = pyglet.image.load('assets\images\objects\Resized\kittenshark_1.png')
+        weaponImage = pyglet.image.load('assets/images/objects/Resized/kittenshark_1.png')
     else:
-        weaponImage = pyglet.image.load('assets\images\objects\Resized\%s'%imagePath)
+        weaponImage = pyglet.image.load(imagePath)
     return weaponImage
 
 
