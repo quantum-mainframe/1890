@@ -1,18 +1,22 @@
 import pyglet, configparser, os, glooey, random, sys
+pyglet.lib.load_library('avbin')
+pyglet.have_avbin=True
 from pyglet.window import key, mouse
 from fight import fightOutcome
-
 objects = configparser.ConfigParser()
 objects.read('assets/objects.ini')
 pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in the build, change this line to: "pyglet.resource.add_font('xkcdRegular.ttf')"
-#try:
-#    pyglet.options['audio'] = ('pulse', 'openal', 'directsound', 'silent')
-#    music = pyglet.media.load('assets/music/dbgf01.ogg')
-#    music.play()
-#except Exception as e:
-#    print("Everything is lava: media isn't working. You probably need to install AVbin.\n{}").format(e)
+
+try:
+    pyglet.options['audio'] = ('pulse', 'openal', 'directsound', 'silent')
+    music = pyglet.media.load('assets/music/dbgf02.ogg', streaming=False)
+    music.play()
+except Exception as e:
+    print("Everything is lava: media isn't working. You probably need to install AVbin.\n{}".format(e))
 #source = pyglet.media.load('animations/xkcdattack_1.mp4') #There's a chance it does support MP4, but we're gonna need FFMPEG
 #player = pyglet.media.Player()
+
+
 window = pyglet.window.Window(1280, 960, "Bull in a Gun Fight", True)
 window.set_minimum_size(960, 720)
 icon16 = pyglet.image.load('assets/images/icon16.png')
@@ -31,6 +35,15 @@ pressedLast = ''
 events = [0] * 100
 inLoop = False
 collect_global_mouse_input = False
+'''
+testImage = pyglet.image.load('assets/images/objects/Resized/kittenshark.png')
+testImage2 = pyglet.image.load('assets/images/objects/Resized/giganticfish.png')
+sprite = pyglet.sprite.Sprite(testImage)
+sprite2 = pyglet.sprite.Sprite(testImage2)
+sprite.scale = 0.1
+sprite2.scale = 0.1
+#img = MyImage(sprite)
+'''
 try:
     if sys.argv[1] == '1v1':
         modeEndurance = False
@@ -39,35 +52,57 @@ try:
         modeEndurance = True
         mode1v1 = False
     else:
-        modeEndurance = True
-        mode1v1 = False
+        modeEndurance = False
+        mode1v1 = True
 except:
-    modeEndurance = True
-    mode1v1 = False
+    modeEndurance = False
+    mode1v1 = True
+
+'''
+label = pyglet.text.Label("This is a truly arbitrary string",
+                          font_name='xkcd',
+                          font_size=32,
+                          x=window.width/2, y=window.height/2 + 64,
+                          anchor_x='center', anchor_y='top')
+label2 = pyglet.text.Label("This is also a truly arbitrary string",
+                          font_name='xkcd',
+                          font_size=32,
+                          x=window.width/2, y=window.height/2,
+                          anchor_x='center', anchor_y='top')
+'''
 
 class MyLabel(glooey.Label):
+    custom_font_name = 'xkcd'
+    custom_color = '#babdb6'
+    custom_font_size = 32
+    custom_alignment = 'left'
+
+class ButtonLabel(glooey.Label):
     custom_font_name = 'xkcd'
     custom_color = '#babdb6'
     custom_font_size = 20
     custom_alignment = 'center'
 
-# If we want another kind of text, for example a bigger font for section
-# titles, we just have to derive another class:
+class PromptBox(glooey.VBox):
+    custom_alignment = 'top'
+    #custom_top_padding = 150
+    custom_padding = 25
+    def __init__(self):
+        super().__init__()
+        self.set_default_cell_size(0)
 
-class MyTitle(glooey.Label):
-    custom_color = '#eeeeec'
-    custom_font_size = 12
+class FightZone(glooey.HBox):
     custom_alignment = 'center'
-    custom_bold = True
+    custom_padding = 100
+
+    def __init__(self):
+        super().__init__()
+        self.set_default_cell_size(0)
 
 class WeaponButton(glooey.Button):
-    Label = MyLabel
+    Label = ButtonLabel
     custom_alignment = 'fill'
-
-    # More often you'd specify images for the different rollover states, but
-    # we're just using colors here so you won't have to download any files
-    # if you want to run this code.
-
+    
     class Base(glooey.Background):
         custom_color = '#204a87'
 
@@ -76,10 +111,6 @@ class WeaponButton(glooey.Button):
 
     class Down(glooey.Background):
         custom_color = '#729fcff'
-
-    # Beyond just setting class variables in our widget subclasses, we can
-    # also implement new functionality.  Here we just print a programmed
-    # response when the button is clicked.
 
     def __init__(self, text, response):
         super().__init__(text)
@@ -91,27 +122,107 @@ class WeaponButton(glooey.Button):
         pressedLast = self.response
         step += 1
 
+class ImageButton(glooey.Button):
+    Label = ButtonLabel
+    custom_alignment = 'fill'
+
+    class Base(glooey.Background):
+        custom_color = '#204a87'
+
+    class Over(glooey.Background):
+        custom_color = '#204a87'
+
+    class Down(glooey.Background):
+        custom_color = '#204a87'
+
+    def __init__(self, text, response):
+        super().__init__(text)
+        self.response = response
+
+    def on_click(self, widget):
+        global step
+        global pressedLast
+        pressedLast = self.response
+        step += 1
+
+class MyImage(glooey.Image):
+    custom_image = None
+    custom_alignment = 'center'
+'''
+    def __init__(self, image=None, sprite=None, texture=None):
+        super().__init__()        
+        self._image = image or self.custom_image
+        self._sprite = sprite
+        self._sprite._texture = texture
+
+    def do_claim(self):
+        if self._sprite is not None:
+            return self._sprite.width, self._sprite.height
+        else:
+            return 0, 0
+
+    def do_regroup(self):
+        if self._sprite is not None:
+            self._sprite.group = self.group
+
+    def do_draw(self):
+        if self._sprite is None:
+            print('No sprite wtf')
+            self.do_undraw()
+            return
+        
+        self._sprite.image = self.image
+
+        self._sprite.x = self.rect.left
+        self._sprite.y = self.rect.bottom
+        self._sprite.draw()
+        print("X: {}".format(self._sprite.x))
+        print("Y: {}".format(self._sprite.y))
+        print("Scale: {}".format(self._sprite.scale))
+        print("Opacity: {}".format(self._sprite.opacity))
+
+    def do_undraw(self):
+        if self._sprite is not None:
+            self._sprite.delete()
+            self._sprite = None
+
+    def get_image(self):
+        return None
+
+    def set_image(self, new_image):
+        pass
+
+    def del_image(self):
+        pass
+
+    def get_appearance(self):
+        return None
+
+    def set_appearance(self, *, sprite=None):
+        pass
+
+    @property
+    def is_empty(self):
+        return self._sprite is None
+'''
+
 class TempBox(glooey.Placeholder):
     custom_alignment = 'center'
     custom_padding = 10
 
-class WeaponGrid(glooey.Grid):
-    custom_alignment = 'fill bottom'
-    custom_padding = 10
-
 @window.event
 def on_draw():
+    global label, label2
     if modeEndurance:
         modeEnduranceRound()
     elif mode1v1:
         mode1v1Round()
     window.clear()
     gui.on_draw()
-    label.draw()
-    label2.draw()
+    #sprite.draw()
 
 #@window.event #probably better to sacrifice keyboard input in favour of it not crashing when anything is pressed?
-#def on_key_press(symbol, modifiers):
+#def on_key_press(symbol, modifiers): #I can probably debug this and fix it, but for the time being, yeah, I agree
 #    gui.dispatch_event('on_key_press', symbol, modifiers)
 #    global step
 #    #if symbol == key.A:
@@ -154,10 +265,9 @@ def getObjectMostStylish(objs):
 
 def runFight(p1, p2, p1s, p2s):
     o = objects[p1]
-    obj1 = {'name':o['Name'], 'atk':int(o['Atk']), 'def':int(o['Def']), 'style':int(o['Style']), 'textLose':o['TextLose'], 'textWin':o['TextWin'], 'state':p1s}
+    obj1 = {'name':o['Name'], 'atk':int(o['Atk']), 'def':int(o['Def']), 'style':int(o['Style']), 'textLose':o['TextLose'], 'textWin':o['TextWin'], 'image':o['Image'], 'state':p1s}
     o = objects[p2]
-    obj2 = {'name':o['Name'], 'atk':int(o['Atk']), 'def':int(o['Def']), 'style':int(o['Style']), 'textLose':o['TextLose'], 'textWin':o['TextWin'], 'state':p2s}
-    
+    obj2 = {'name':o['Name'], 'atk':int(o['Atk']), 'def':int(o['Def']), 'style':int(o['Style']), 'textLose':o['TextLose'], 'textWin':o['TextWin'], 'image':o['Image'], 'state':p2s}
     out = []
     
     if obj1['state'] == 'offense' and obj2['state'] == 'defense':
@@ -177,33 +287,53 @@ def runFight(p1, p2, p1s, p2s):
     elif winner == obj2:
         out.append(obj1['textLose'].format(obj2['textWin']))
         out.append(p2)
+    out.append(obj1['image'])
+    out.append(obj2['image'])
     return out
 
+class ChoiceGrid(glooey.Grid):
+    custom_alignment = 'fill'
+    custom_padding = 10
+    custom_height_hint = 200
+
 def drawWeaponGrid(rows, columns, objs):
-    gui.clear()
     x = 0
-    grid = WeaponGrid()
+    grid = ChoiceGrid()
+    box = glooey.VBox() #The grid had to be put in a box, because the grid wouldn't stop aligning itself to the left of the screen
+    box.alignment = 'fill bottom'
+    box.add(grid)
     for i in range(rows):
         for j in range(columns):
             grid.add(i, j, WeaponButton(objects[objs[x]]['name'], objs[x]))
             x += 1
-    gui.add(grid)
+    gui.add(box)
 
 def drawADGrid(rows, columns):
-    gui.clear()
-    grid = WeaponGrid()
+    grid = ChoiceGrid()
+    box = glooey.VBox() #The grid had to be put in a box, because the grid wouldn't stop aligning itself to the left of the screen
+    box.alignment = 'fill bottom'
+    box.add(grid)
     grid.add(1, 0, WeaponButton("Offensively", 'offense'))
     grid.add(1, 1, WeaponButton("Defensively", 'defense'))
-    gui.add(grid)
+    gui.add(box)
+
+def getFightImage(imagePath):
+    if imagePath == 'None':
+        weaponImage = pyglet.image.load('assets\images\objects\Resized\kittenshark_1.png')
+    else:
+        weaponImage = pyglet.image.load('assets\images\objects\Resized\%s'%imagePath)
+    return weaponImage
+
 
 def mode1v1Round():
-    global events
-    global step
-    global collect_global_mouse_input
+    global events, step, collect_global_mouse_input, label, label2
     if (events[step]):
         return
     events[step] = True
+    gui.clear()
+    gui.add(vbox)
     if step == 0:
+        #sprite.opacity = 100
         collect_global_mouse_input = True
         label.text = "Player 2, look away."
         label2.text = "Player 1, click anywhere to continue."
@@ -222,7 +352,6 @@ def mode1v1Round():
     elif step == 3:
         global state1
         state1 = pressedLast
-        gui.clear()
         collect_global_mouse_input = True
         label.text = "Player 1, look away."
         label2.text = "Player 2, click anywhere to continue."
@@ -236,31 +365,43 @@ def mode1v1Round():
         obj2 = pressedLast
         label.text = "Player 2, how would you like to use your {}?".format(objects[obj2]['name'])
         drawADGrid(1, 2)
-    elif step == 6:
+    elif step == 6: #Pre-Fight
         global state2
         global outputFight
         state2 = pressedLast
-        gui.clear()
         collect_global_mouse_input = True
         label.text = "Both players can look."
         label2.text = "The fight is about to begin."
         outputFight = runFight(obj1, obj2, state1, state2)
         #player.queue(source)
         #player.play()
-    elif step == 7:
+    elif step == 7: #Fight
         label.text = outputFight[0]
         label2.text = ""
-    elif step == 8:
+        fightScene = FightZone()
+        img = MyImage(getFightImage(outputFight[5]))
+        img2 = MyImage(getFightImage(outputFight[6]))
+        fightScene.add(img)
+        fightScene.add(img2)
+        gui.add(fightScene)
+    elif step == 8: #Outcome
+        fightScene = FightZone()
+        img = MyImage(getFightImage(outputFight[5]))
+        img2 = MyImage(getFightImage(outputFight[6]))
+        fightScene.add(img)
+        fightScene.add(img2)
+        gui.add(fightScene)
         label2.text = outputFight[1]
-    elif step == 9:
+    elif step == 9: #Conclusion
         label.text = outputFight[2]
         label2.text = outputFight[3]
-    elif step == 10:
+    elif step == 10:#Prompt for Replay
         label.text = "Click anywhere to play again."
         label2.text = ""
-    elif step == 11:
+    elif step == 11:#Reset values
         step = 0
         window.clear()
+        gui.clear()
         events = [0] * 100
 
 def modeEnduranceRound():
@@ -332,16 +473,11 @@ def modeEnduranceRun(loss = False):
         #window.clear()
         modeEnduranceRound()
 
-label = pyglet.text.Label("This is a truly arbitrary string",
-                          font_name='xkcd',
-                          font_size=32,
-                          x=window.width/2, y=window.height/2 + 64,
-                          anchor_x='center', anchor_y='top')
-label2 = pyglet.text.Label("This is also a truly arbitrary string",
-                          font_name='xkcd',
-                          font_size=32,
-                          x=window.width/2, y=window.height/2,
-                          anchor_x='center', anchor_y='top')
+label = MyLabel("Also arbitrary 1", line_wrap = 900)
+label2 = MyLabel("Also arbitrary", line_wrap = 900)
+vbox = PromptBox()
+vbox.add(label)
+vbox.add(label2)
 
 pyglet.app.run()
 '''
