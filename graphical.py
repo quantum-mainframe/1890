@@ -1,22 +1,16 @@
 import pyglet, configparser, os, glooey, random, sys
 pyglet.lib.load_library('avbin')
 pyglet.have_avbin=True
+pyglet.have_ffmpeg=True
 from pyglet.window import key, mouse
 from fight import fightOutcome
 objects = configparser.ConfigParser()
 objects.read('assets/objects.ini')
 pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in the build, change this line to: "pyglet.resource.add_font('xkcdRegular.ttf')"
 
-try:
-    pyglet.options['audio'] = ('pulse', 'openal', 'directsound', 'silent')
-    music = pyglet.media.load('assets/music/dbgf02.ogg', streaming=False)
-    music.play()
-except Exception as e:
-    print("Everything is lava: media isn't working. You probably need to install AVbin.\n{}".format(e))
+
 #source = pyglet.media.load('animations/xkcdattack_1.mp4') #There's a chance it does support MP4, but we're gonna need FFMPEG
 #player = pyglet.media.Player()
-
-
 window = pyglet.window.Window(1280, 960, "Bull in a Gun Fight", True)
 window.set_minimum_size(960, 720)
 icon16 = pyglet.image.load('assets/images/icon16.png')
@@ -57,7 +51,21 @@ try:
 except:
     modeEndurance = False
     mode1v1 = True
-
+try:
+    pyglet.options['audio'] = ('pulse', 'openal', 'directsound', 'silent')
+    player = pyglet.media.Player()
+    if modeEndurance:
+        music = pyglet.media.load('assets/music/dbgf01.wav', streaming=False)
+    elif mode1v1:
+        music = pyglet.media.load('assets/music/dbgf02.wav', streaming=False)
+    else:
+        print('There should be no possible way that you\'ve gotten here.')
+    
+    player.queue(music)
+    player.play()
+    #music.play()
+except Exception as e:
+    print("Everything is lava: media isn't working. You probably need to install AVbin.\n{}".format(e))
 '''
 label = pyglet.text.Label("This is a truly arbitrary string",
                           font_name='xkcd',
