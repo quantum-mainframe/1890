@@ -1,4 +1,4 @@
-import pyglet, configparser, os, glooey, random, sys, playsound
+import pyglet, configparser, os, glooey, random, sys, pygame
 from pyglet.window import key, mouse
 from fight import fightOutcome
 from playsound import playsound
@@ -21,6 +21,12 @@ window.set_icon(icon16, icon32, icon48, icon64, icon72, icon128)
 batch = pyglet.graphics.Batch()
 group = pyglet.graphics.Group()
 gui = glooey.Gui(window, batch, group)
+
+pygame.mixer.pre_init(44100, 16, 2, 4096) # setup mixer to avoid sound lag
+pygame.mixer.init()
+pygame.mixer.set_num_channels(4) # set a large number of channels so all the game sounds will play WITHOUT stopping another
+
+
 step = 0
 r = 0
 pressedLast = ''
@@ -180,9 +186,17 @@ class MyImage(glooey.Image):
 def play_music():
     try:
         if modeEndurance:
-            playsound('assets/music/dbgf01.wav', False)
+            pygame.mixer.music.stop()
+            pygame.mixer.music.load('assets/music/dbgf01.ogg')
+            pygame.mixer.music.set_volume(0.75)
+            pygame.mixer.music.play(-1) # the music will loop endlessly
+            #playsound('assets/music/dbgf01.wav', False)
         elif mode1v1:
-            playsound('assets/music/dbgf02.wav', False)
+            pygame.mixer.music.stop()
+            pygame.mixer.music.load('assets/music/dbgf02.ogg')
+            pygame.mixer.music.set_volume(0.75)
+            pygame.mixer.music.play(-1) # the music will loop endlessly
+            #playsound('assets/music/dbgf02.wav', False)
         else:
             print('There should be no possible way that you\'ve gotten here.')
     except Exception as e:
