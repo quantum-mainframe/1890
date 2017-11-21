@@ -328,34 +328,34 @@ def mode1v1Round():
     events[step] = True
     gui.clear()
     gui.add(vbox)
-    if step == 0:
+    if step == 0: #Welcome Screen
         collect_global_mouse_input = True
         label.text = "Player 2, look away."
         label2.text = "Player 1, click anywhere to continue."
-    elif step == 1:
+    elif step == 1: #Prompt Player 1 for weapon choice
         global objs
         collect_global_mouse_input = False
         label.text = "Player 1, what do you want to bring?"
         label2.text = ""
         objs = getObjectsRandomId(8)
         drawWeaponGrid(2, 4, objs)
-    elif step == 2:
+    elif step == 2: #Prompt Player 1 for attack/defense
         global obj1
         obj1 = pressedLast
         label.text = "Player 1, how would you like to use your {}?".format(objects[obj1]['name'])
         drawADGrid(1, 2)
-    elif step == 3:
+    elif step == 3: #Switch Players
         global state1
         state1 = pressedLast
         collect_global_mouse_input = True
         label.text = "Player 1, look away."
         label2.text = "Player 2, click anywhere to continue."
-    elif step == 4:
+    elif step == 4: #Prompt Player 2 for weapon choice
         collect_global_mouse_input = False
         label.text = "Player 2, what do you want to bring?"
         label2.text = ""
         drawWeaponGrid(2, 4, objs)
-    elif step == 5:
+    elif step == 5: #Prompt Player 2 for attack/defense
         global obj2
         obj2 = pressedLast
         label.text = "Player 2, how would you like to use your {}?".format(objects[obj2]['name'])
@@ -405,23 +405,25 @@ def modeEnduranceRound():
     if (events[step]):
         return
     events[step] = True
-    if step == 0:
+    gui.clear()
+    gui.add(vbox)
+    if step == 0: #Welcome Screen
         collect_global_mouse_input = True
         label.text = "Round {}".format(r + 1)
         label2.text = "Click anywhere to begin."
-    elif step == 1:
+    elif step == 1: #Prompt for weapon choice
         global objs
         collect_global_mouse_input = False
         label.text = "What do you want to bring to the fight?"
         label2.text = ""
         objs = getObjectsRandomId(8)
         drawWeaponGrid(2, 4, objs)
-    elif step == 2:
+    elif step == 2: #Prompt for attack/defense
         global obj1
         obj1 = pressedLast
         label.text = "How would you like to use your {}?".format(objects[obj1]['name'])
         drawADGrid(1, 2)
-    elif step == 3:
+    elif step == 3: #Choice results
         global state1
         global state2
         global outputFight
@@ -436,15 +438,15 @@ def modeEnduranceRound():
         label.text = "The CPU brought {}.".format(objects[obj2]['name'])
         label2.text = "Click to begin the fight."
         outputFight = runFight(obj1, obj2, state1, state2)
-    elif step == 4:
+    elif step == 4: #Fight
         label.text = outputFight[0]
         label2.text = ""
     elif step == 5:
         label2.text = outputFight[1]
-    elif step == 6:
+    elif step == 6: #Conclusion
         label.text = outputFight[2]
         label2.text = outputFight[3]
-    elif step == 7:
+    elif step == 7: #Play again?
         if outputFight[4] == obj1:
             modeEnduranceRun(False)
         else:
