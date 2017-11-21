@@ -1,9 +1,7 @@
-import pyglet, configparser, os, glooey, random, sys
-pyglet.lib.load_library('avbin')
-pyglet.have_avbin=True
-pyglet.have_ffmpeg=True
+import pyglet, configparser, os, glooey, random, sys, playsound
 from pyglet.window import key, mouse
 from fight import fightOutcome
+from playsound import playsound
 objects = configparser.ConfigParser()
 objects.read('assets/objects.ini')
 pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in the build, change this line to: "pyglet.resource.add_font('xkcdRegular.ttf')"
@@ -29,15 +27,7 @@ pressedLast = ''
 events = [0] * 100
 inLoop = False
 collect_global_mouse_input = False
-'''
-testImage = pyglet.image.load('assets/images/objects/Resized/kittenshark.png')
-testImage2 = pyglet.image.load('assets/images/objects/Resized/giganticfish.png')
-sprite = pyglet.sprite.Sprite(testImage)
-sprite2 = pyglet.sprite.Sprite(testImage2)
-sprite.scale = 0.1
-sprite2.scale = 0.1
-#img = MyImage(sprite)
-'''
+
 try:
     if sys.argv[1] == '1v1':
         modeEndurance = False
@@ -51,33 +41,6 @@ try:
 except:
     modeEndurance = False
     mode1v1 = True
-try:
-    pyglet.options['audio'] = ('pulse', 'openal', 'directsound', 'silent')
-    player = pyglet.media.Player()
-    if modeEndurance:
-        music = pyglet.media.load('assets/music/dbgf01.wav', streaming=False)
-    elif mode1v1:
-        music = pyglet.media.load('assets/music/dbgf02.wav', streaming=False)
-    else:
-        print('There should be no possible way that you\'ve gotten here.')
-    
-    player.queue(music)
-    player.play()
-    #music.play()
-except Exception as e:
-    print("Everything is lava: media isn't working. You probably need to install AVbin.\n{}".format(e))
-'''
-label = pyglet.text.Label("This is a truly arbitrary string",
-                          font_name='xkcd',
-                          font_size=32,
-                          x=window.width/2, y=window.height/2 + 64,
-                          anchor_x='center', anchor_y='top')
-label2 = pyglet.text.Label("This is also a truly arbitrary string",
-                          font_name='xkcd',
-                          font_size=32,
-                          x=window.width/2, y=window.height/2,
-                          anchor_x='center', anchor_y='top')
-'''
 
 class MyLabel(glooey.Label):
     custom_font_name = 'xkcd'
@@ -214,6 +177,18 @@ class MyImage(glooey.Image):
         return self._sprite is None
 '''
 
+def play_music():
+    try:
+        if modeEndurance:
+            playsound('assets/music/dbgf01.wav', False)
+        elif mode1v1:
+            playsound('assets/music/dbgf02.wav', False)
+        else:
+            print('There should be no possible way that you\'ve gotten here.')
+    except Exception as e:
+        print("\nEverything is lava: media isn't working.\nYou probably need to install some missing dependencies.\nMore information on this should be below.\n{}".format(e))
+
+
 class TempBox(glooey.Placeholder):
     custom_alignment = 'center'
     custom_padding = 10
@@ -227,7 +202,6 @@ def on_draw():
         mode1v1Round()
     window.clear()
     gui.on_draw()
-    #sprite.draw()
 
 #@window.event #probably better to sacrifice keyboard input in favour of it not crashing when anything is pressed?
 #def on_key_press(symbol, modifiers): #I can probably debug this and fix it, but for the time being, yeah, I agree
@@ -341,7 +315,6 @@ def mode1v1Round():
     gui.clear()
     gui.add(vbox)
     if step == 0:
-        #sprite.opacity = 100
         collect_global_mouse_input = True
         label.text = "Player 2, look away."
         label2.text = "Player 1, click anywhere to continue."
@@ -381,8 +354,6 @@ def mode1v1Round():
         label.text = "Both players can look."
         label2.text = "The fight is about to begin."
         outputFight = runFight(obj1, obj2, state1, state2)
-        #player.queue(source)
-        #player.play()
     elif step == 7: #Fight
         label.text = outputFight[0]
         label2.text = ""
@@ -486,6 +457,8 @@ label2 = MyLabel("Also arbitrary", line_wrap = 900)
 vbox = PromptBox()
 vbox.add(label)
 vbox.add(label2)
+
+play_music()
 
 pyglet.app.run()
 '''
