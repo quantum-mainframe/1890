@@ -317,7 +317,7 @@ def getFightImage(imagePath):
     if imagePath == 'None':
         weaponImage = pyglet.image.load('assets/images/objects/Resized/kittenshark_1.png')
     else:
-        weaponImage = pyglet.image.load(imagePath)
+        weaponImage = pyglet.image.load('assets/images/objects/Resized/%s'%imagePath)
     return weaponImage
 
 
