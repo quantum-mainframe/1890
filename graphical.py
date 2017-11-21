@@ -301,9 +301,9 @@ def drawADGrid(rows, columns):
 
 def getFightImage(imagePath):
     if imagePath == 'None':
-        weaponImage = pyglet.image.load('assets\images\objects\Resized\kittenshark_1.png')
+        weaponImage = pyglet.image.load('assets/images/objects/Resized/kittenshark_1.png')
     else:
-        weaponImage = pyglet.image.load('assets\images\objects\Resized\%s'%imagePath)
+        weaponImage = pyglet.image.load(imagePath)
     return weaponImage
 
 
