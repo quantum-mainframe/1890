@@ -9,8 +9,10 @@ pyglet.font.add_file('assets/font/xkcd-Regular.ttf') #If we include the font in 
 
 #source = pyglet.media.load('animations/xkcdattack_1.mp4') #There's a chance it does support MP4, but we're gonna need FFMPEG
 #player = pyglet.media.Player()
+
 window = pyglet.window.Window(1280, 960, "Bull in a Gun Fight", True)
-window.set_minimum_size(960, 720)
+window.set_minimum_size(1152, 648)
+
 icon16 = pyglet.image.load('assets/images/icon16.png')
 icon32 = pyglet.image.load('assets/images/icon32.png')
 icon48 = pyglet.image.load('assets/images/icon48.png')
@@ -18,6 +20,7 @@ icon64 = pyglet.image.load('assets/images/icon64.png')
 icon72 = pyglet.image.load('assets/images/icon72.png')
 icon128 = pyglet.image.load('assets/images/icon128.png')
 window.set_icon(icon16, icon32, icon48, icon64, icon72, icon128)
+
 batch = pyglet.graphics.Batch()
 group = pyglet.graphics.Group()
 gui = glooey.Gui(window, batch, group)
@@ -26,27 +29,17 @@ pygame.mixer.pre_init(44100, 16, 2, 4096) # setup mixer to avoid sound lag
 pygame.mixer.init()
 pygame.mixer.set_num_channels(4) # set a large number of channels so all the game sounds will play WITHOUT stopping another
 
-
 step = 0
 r = 0
 pressedLast = ''
 events = [0] * 100
 inLoop = False
 collect_global_mouse_input = False
-
-try:
-    if sys.argv[1] == '1v1':
-        modeEndurance = True
-        mode1v1 = False
-    elif sys.argv[1] == 'endurance':
-        modeEndurance = True
-        mode1v1 = False
-    else:
-        modeEndurance = True
-        mode1v1 = False
-except:
-    modeEndurance = True
-    mode1v1 = False
+win = False         #Quick Hack for preserving the consistency of the GUI process whilst achieving variable end of round prompts
+modeSelect = True
+choosingMode = False
+modeEndurance = False
+mode1v1 = False
 
 class MyLabel(glooey.Label):
     custom_font_name = 'xkcd'
@@ -161,25 +154,28 @@ class MyImage(glooey.Image):
         return self._sprite is None
 '''
 
-def play_music():
+def play_music(MainMenu = True):
+    global modeEndurance, mode1v1
     try:
-        if modeEndurance:
-            pygame.mixer.music.stop()
-            pygame.mixer.music.load('assets/music/dbgf01.ogg')
-            pygame.mixer.music.set_volume(0.75)
-            pygame.mixer.music.play(-1) # the music will loop endlessly
-            #playsound('assets/music/dbgf01.wav', False)
-        elif mode1v1:
-            pygame.mixer.music.stop()
-            pygame.mixer.music.load('assets/music/dbgf02.ogg')
-            pygame.mixer.music.set_volume(0.75)
-            pygame.mixer.music.play(-1) # the music will loop endlessly
-            #playsound('assets/music/dbgf02.wav', False)
+        if MainMenu:
+            playTrack1()
         else:
-            print('There should be no possible way that you\'ve gotten here.')
+            playTrack2()
     except Exception as e:
         print("\nEverything is lava: media isn't working.\nYou probably need to install some missing dependencies.\nMore information on this should be below.\n{}".format(e))
 
+def playTrack1():
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load('assets/music/dbgf01.ogg')
+    pygame.mixer.music.set_volume(0.75)
+    pygame.mixer.music.play(-1) # the music will loop endlessly
+
+def playTrack2():
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load('assets/music/dbgf02.ogg')
+    pygame.mixer.music.set_volume(0.75)
+    pygame.mixer.music.play(-1) # the music will loop endlessly
+    
 
 class TempBox(glooey.Placeholder):
     custom_alignment = 'center'
@@ -187,8 +183,9 @@ class TempBox(glooey.Placeholder):
 
 @window.event
 def on_draw():
-    global label, label2
-    if modeEndurance:
+    if modeSelect:
+        game_mode_select()
+    elif modeEndurance:
         modeEnduranceRound()
     elif mode1v1:
         mode1v1Round()
@@ -265,6 +262,13 @@ def runFight(p1, p2, p1s, p2s):
     out.append(obj2['image'])
     return out
 
+def getFightImage(imagePath):
+    if imagePath == 'None':
+        weaponImage = pyglet.image.load('assets/images/objects/Resized/kittenshark_1.png')
+    else:
+        weaponImage = pyglet.image.load('assets/images/objects/Resized/%s'%imagePath)
+    return weaponImage
+
 class ChoiceGrid(glooey.Grid):
     custom_alignment = 'fill'
     custom_padding = 10
@@ -291,19 +295,6 @@ def drawADGrid(rows, columns):
     grid.add(1, 1, WeaponButton("Defensively", 'defense'))
     gui.add(box)
 
-def play_again():
-    ResetRound()
-    print('play_again')
-    if mode1v1:
-        print('1v1')
-        mode1v1Round()
-    elif modeEndurance:
-        print('endurance')
-        modeEnduranceRound()
-    else:
-        BorkedError()
-    print('not stuck?')
-
 class EndOfRoundButton(glooey.Button):
     Label = ButtonLabel
     custom_alignment = 'fill'
@@ -322,10 +313,26 @@ class EndOfRoundButton(glooey.Button):
         self.response = response
 
     def on_click(self, widget):
+        global collect_global_mouse_input, modeEndurance, mode1v1, modeSelect, choosingMode
+        collect_global_mouse_input = False
         if self.response == 'Play Again':
             play_again()
         elif self.response == 'Change Game Mode':
-            game_mode()
+            game_mode_select()
+            choosingMode = False
+            modeSelect = True
+            mode1v1 = False
+            modeEndurance = False
+        elif self.response == '1v1':
+            mode1v1 = True
+            modeEndurance = False
+            modeSelect = False
+            playTrack2()
+        elif self.response == 'endurance':
+            mode1v1 = False
+            modeEndurance = True
+            modeSelect = False
+            playTrack2()
         else:
             BorkedError()
 
@@ -338,15 +345,36 @@ def drawPlayAgainGrid():
     grid.add(1, 1, EndOfRoundButton("Change Game Mode", 'Change Game Mode'))
     gui.add(box)
 
-
-
-def getFightImage(imagePath):
-    if imagePath == 'None':
-        weaponImage = pyglet.image.load('assets/images/objects/Resized/kittenshark_1.png')
+def play_again():
+    ResetRound()
+    if mode1v1:
+        mode1v1Round()
+    elif modeEndurance:
+        modeEnduranceRound()
     else:
-        weaponImage = pyglet.image.load('assets/images/objects/Resized/%s'%imagePath)
-    return weaponImage
+        BorkedError()
+    
+def drawGameModeGrid():
+    grid = ChoiceGrid()
+    box = glooey.VBox() #The grid had to be put in a box, because the grid wouldn't stop aligning itself to the left of the screen
+    box.alignment = 'fill bottom'
+    box.add(grid)
+    grid.add(1, 0, EndOfRoundButton("Local 1v1", '1v1'))
+    grid.add(1, 1, EndOfRoundButton("Endurance", 'endurance'))
+    gui.add(box)
 
+def game_mode_select():
+    global choosingMode
+    if not choosingMode:
+        ResetRound()
+        print('we are choosing')
+        playTrack1()
+        gui.clear()
+        gui.add(vbox)
+        label.text = "Choose a game mode!"
+        label2.text = "...or just listen to the music."
+        drawGameModeGrid()
+        choosingMode = True
 
 def mode1v1Round():
     global events, step, collect_global_mouse_input, label, label2
@@ -416,10 +444,10 @@ def mode1v1Round():
         label.text = outputFight[2]
         label2.text = outputFight[3]
     elif step == 10:#Prompt for Replay
-        label.text = "Click anywhere to play again."
+        collect_global_mouse_input = False
+        label.text = "Play Again?"
         label2.text = ""
-    elif step == 11:#Reset values
-        ResetRound()
+        drawPlayAgainGrid()
 
 def modeEnduranceRound():
     global events, step, collect_global_mouse_input, label, label2, r, win
@@ -490,7 +518,7 @@ def modeEnduranceRound():
             win = False
             label.text = "You lost!"
             label2.text = "You survived {} rounds.".format(r + 1)
-    elif step == 8: #Restart Round or Prompt for Play Again
+    elif step == 8: #Restart Round / Prompt for Play Again or Change Game Mode
         collect_global_mouse_input = False
         if win:
             ResetRound()
@@ -517,7 +545,6 @@ label2 = MyLabel("Also arbitrary", line_wrap = 900)
 vbox = PromptBox()
 vbox.add(label)
 vbox.add(label2)
-win = False         #Quick Hack for preserving the consistency of the GUI process whilst achieving variable end of round prompts
 play_music()
 
 pyglet.app.run()
