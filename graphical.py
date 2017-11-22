@@ -36,17 +36,17 @@ collect_global_mouse_input = False
 
 try:
     if sys.argv[1] == '1v1':
-        modeEndurance = False
-        mode1v1 = True
+        modeEndurance = True
+        mode1v1 = False
     elif sys.argv[1] == 'endurance':
         modeEndurance = True
         mode1v1 = False
     else:
-        modeEndurance = False
-        mode1v1 = True
+        modeEndurance = True
+        mode1v1 = False
 except:
-    modeEndurance = False
-    mode1v1 = True
+    modeEndurance = True
+    mode1v1 = False
 
 class MyLabel(glooey.Label):
     custom_font_name = 'xkcd'
@@ -98,29 +98,7 @@ class WeaponButton(glooey.Button):
         global pressedLast
         pressedLast = self.response
         step += 1
-
-class ImageButton(glooey.Button):
-    Label = ButtonLabel
-    custom_alignment = 'fill'
-
-    class Base(glooey.Background):
-        custom_color = '#204a87'
-
-    class Over(glooey.Background):
-        custom_color = '#204a87'
-
-    class Down(glooey.Background):
-        custom_color = '#204a87'
-
-    def __init__(self, text, response):
-        super().__init__(text)
-        self.response = response
-
-    def on_click(self, widget):
-        global step
-        global pressedLast
-        pressedLast = self.response
-        step += 1
+        
 
 class MyImage(glooey.Image):
     custom_image = None
@@ -313,6 +291,55 @@ def drawADGrid(rows, columns):
     grid.add(1, 1, WeaponButton("Defensively", 'defense'))
     gui.add(box)
 
+def play_again():
+    ResetRound()
+    print('play_again')
+    if mode1v1:
+        print('1v1')
+        mode1v1Round()
+    elif modeEndurance:
+        print('endurance')
+        modeEnduranceRound()
+    else:
+        BorkedError()
+    print('not stuck?')
+
+class EndOfRoundButton(glooey.Button):
+    Label = ButtonLabel
+    custom_alignment = 'fill'
+    
+    class Base(glooey.Background):
+        custom_color = '#204a87'
+
+    class Over(glooey.Background):
+        custom_color = '#3465a4'
+
+    class Down(glooey.Background):
+        custom_color = '#729fcff'
+
+    def __init__(self, text, response):
+        super().__init__(text)
+        self.response = response
+
+    def on_click(self, widget):
+        if self.response == 'Play Again':
+            play_again()
+        elif self.response == 'Change Game Mode':
+            game_mode()
+        else:
+            BorkedError()
+
+def drawPlayAgainGrid():
+    grid = ChoiceGrid()
+    box = glooey.VBox() #The grid had to be put in a box, because the grid wouldn't stop aligning itself to the left of the screen
+    box.alignment = 'fill bottom'
+    box.add(grid)
+    grid.add(1, 0, EndOfRoundButton("Play Again", 'Play Again'))
+    grid.add(1, 1, EndOfRoundButton("Change Game Mode", 'Change Game Mode'))
+    gui.add(box)
+
+
+
 def getFightImage(imagePath):
     if imagePath == 'None':
         weaponImage = pyglet.image.load('assets/images/objects/Resized/kittenshark_1.png')
@@ -392,16 +419,10 @@ def mode1v1Round():
         label.text = "Click anywhere to play again."
         label2.text = ""
     elif step == 11:#Reset values
-        step = 0
-        window.clear()
-        gui.clear()
-        events = [0] * 100
+        ResetRound()
 
 def modeEnduranceRound():
-    global step
-    global r
-    global collect_global_mouse_input
-    global events
+    global events, step, collect_global_mouse_input, label, label2, r, win
     if (events[step]):
         return
     events[step] = True
@@ -409,6 +430,7 @@ def modeEnduranceRound():
     gui.add(vbox)
     if step == 0: #Welcome Screen
         collect_global_mouse_input = True
+        win = False
         label.text = "Round {}".format(r + 1)
         label2.text = "Click anywhere to begin."
     elif step == 1: #Prompt for weapon choice
@@ -433,7 +455,6 @@ def modeEnduranceRound():
         else:
             obj2 = getObjectMostStylish(objs)
         state2 = random.choice(['offense', 'defense'])
-        gui.clear()
         collect_global_mouse_input = True
         label.text = "The CPU brought {}.".format(objects[obj2]['name'])
         label2.text = "Click to begin the fight."
@@ -441,39 +462,62 @@ def modeEnduranceRound():
     elif step == 4: #Fight
         label.text = outputFight[0]
         label2.text = ""
-    elif step == 5:
+        fightScene = FightZone()
+        img = MyImage(getFightImage(outputFight[5]))
+        img2 = MyImage(getFightImage(outputFight[6]))
+        fightScene.add(img)
+        fightScene.add(img2)
+        gui.add(fightScene)
+    elif step == 5: #Outcome
+        fightScene = FightZone()
+        img = MyImage(getFightImage(outputFight[5]))
+        img2 = MyImage(getFightImage(outputFight[6]))
+        fightScene.add(img)
+        fightScene.add(img2)
+        gui.add(fightScene)
         label2.text = outputFight[1]
     elif step == 6: #Conclusion
         label.text = outputFight[2]
         label2.text = outputFight[3]
-    elif step == 7: #Play again?
-        if outputFight[4] == obj1:
-            modeEnduranceRun(False)
+    elif step == 7: #Results
+        collect_global_mouse_input = True
+        if outputFight[4] == obj1: #If the human player won this round
+            win = True
+            label.text = "You won this round!"
+            label2.text = "Click to continue."
+            r += 1
         else:
-            modeEnduranceRun(True)
-        events = [0] * 100
+            win = False
+            label.text = "You lost!"
+            label2.text = "You survived {} rounds.".format(r + 1)
+    elif step == 8: #Restart Round or Prompt for Play Again
+        collect_global_mouse_input = False
+        if win:
+            ResetRound()
+            modeEnduranceRound()
+        else:
+            label.text = "Play Again?"
+            label2.text = ""
+            drawPlayAgainGrid()
 
-def modeEnduranceRun(loss = False):
-    global r
-    global modeEndurance
-    global step
-    if loss:
-        label.text = "You lose!"
-        label2.text = "You survived {} rounds.".format(r + 1)
-        modeEndurance = False
-    else:
-        r += 1
-        modeEndurance = True
-        step = 0
-        #window.clear()
-        modeEnduranceRound()
+def ResetRound():
+    global step, events
+    step = 0
+    window.clear()
+    gui.clear()
+    events = [0] * 100
+
+def BorkedError():
+    gui.clear()
+    label.text = "Something is borked. Tell the developers."
+    label2.text = "Please."
 
 label = MyLabel("Also arbitrary 1", line_wrap = 900)
 label2 = MyLabel("Also arbitrary", line_wrap = 900)
 vbox = PromptBox()
 vbox.add(label)
 vbox.add(label2)
-
+win = False         #Quick Hack for preserving the consistency of the GUI process whilst achieving variable end of round prompts
 play_music()
 
 pyglet.app.run()
