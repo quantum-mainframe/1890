@@ -1,2 +1,2 @@
 start cmd.exe /k ^
-pyinstaller graphical.py --add-data "assets;assets" --onefile
+pyinstaller graphical.py --add-data "assets;assets" --onedir --clean
