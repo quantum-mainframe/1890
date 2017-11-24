@@ -30,7 +30,7 @@ pygame.mixer.init()
 pygame.mixer.set_num_channels(4) # set a large number of channels so all the game sounds will play WITHOUT stopping another
 
 step = 0
-r = 0
+roundsWon = 0
 pressedLast = ''
 events = [0] * 100
 inLoop = False
@@ -313,7 +313,7 @@ class EndOfRoundButton(glooey.Button):
         self.response = response
 
     def on_click(self, widget):
-        global collect_global_mouse_input, modeEndurance, mode1v1, modeSelect, choosingMode
+        global collect_global_mouse_input, modeEndurance, mode1v1, modeSelect, choosingMode, roundsWon
         collect_global_mouse_input = False
         if self.response == 'Play Again':
             play_again()
@@ -332,6 +332,7 @@ class EndOfRoundButton(glooey.Button):
             mode1v1 = False
             modeEndurance = True
             modeSelect = False
+            roundsWon = 0
             playTrack2()
         else:
             BorkedError()
@@ -367,7 +368,6 @@ def game_mode_select():
     global choosingMode
     if not choosingMode:
         ResetRound()
-        print('we are choosing')
         playTrack1()
         gui.clear()
         gui.add(vbox)
@@ -450,7 +450,7 @@ def mode1v1Round():
         drawPlayAgainGrid()
 
 def modeEnduranceRound():
-    global events, step, collect_global_mouse_input, label, label2, r, win
+    global events, step, collect_global_mouse_input, label, label2, roundsWon, win
     if (events[step]):
         return
     events[step] = True
@@ -459,7 +459,7 @@ def modeEnduranceRound():
     if step == 0: #Welcome Screen
         collect_global_mouse_input = True
         win = False
-        label.text = "Round {}".format(r + 1)
+        label.text = "Round {}".format(roundsWon + 1)
         label2.text = "Click anywhere to begin."
     elif step == 1: #Prompt for weapon choice
         global objs
@@ -513,11 +513,12 @@ def modeEnduranceRound():
             win = True
             label.text = "You won this round!"
             label2.text = "Click to continue."
-            r += 1
+            roundsWon += 1
         else:
             win = False
             label.text = "You lost!"
-            label2.text = "You survived {} rounds.".format(r + 1)
+            label2.text = "You survived {} rounds.".format(roundsWon + 1)
+            roundsWon = 0
     elif step == 8: #Restart Round / Prompt for Play Again or Change Game Mode
         collect_global_mouse_input = False
         if win:
